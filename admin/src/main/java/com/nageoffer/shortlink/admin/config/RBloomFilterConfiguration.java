@@ -15,14 +15,28 @@
  * limitations under the License.
  */
 
-package com.nageoffer.shortlink.admin.dao.mapper;
+package com.nageoffer.shortlink.admin.config;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.nageoffer.shortlink.admin.dao.entity.UserDO;
+import org.redisson.api.RBloomFilter;
+import org.redisson.api.RedissonClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * 用户持久层
+ * 布隆过滤器配置
  * 公众号：马丁玩编程，回复：加群，添加马哥微信（备注：link）获取项目资料
  */
-public interface UserMapper extends BaseMapper<UserDO> {
+@Configuration(value = "rBloomFilterConfigurationByAdmin")
+public class RBloomFilterConfiguration {
+
+    /**
+     * 防止用户注册查询数据库的布隆过滤器
+     */
+    @Bean
+    public RBloomFilter<String> userRegisterCachePenetrationBloomFilter(RedissonClient redissonClient) {
+        RBloomFilter<String> cachePenetrationBloomFilter = redissonClient.getBloomFilter("userRegisterCachePenetrationBloomFilter");
+        // 预计元素大小、误判率
+        cachePenetrationBloomFilter.tryInit(100000000L, 0.001);
+        return cachePenetrationBloomFilter;
+    }
 }
